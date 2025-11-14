@@ -1,0 +1,1322 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Dashboard - Smart Garbage Management System</title>
+    <link rel="stylesheet" href="assets/css/main.css">
+    <link rel="stylesheet" href="assets/css/animations.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="assets/js/auth.js"></script>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(135deg, #10b981, #3b82f6);
+            min-height: 100vh;
+        }
+        
+        .dashboard-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        
+        .dashboard-header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: var(--radius-2xl);
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: var(--shadow-xl);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .back-button {
+            position: absolute;
+            top: 1rem;
+            left: 1rem;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: var(--shadow-md);
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .back-button:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+        }
+        
+        .user-welcome {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        
+        .user-avatar {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+        
+        .user-details h2 {
+            margin: 0;
+            color: var(--gray-800);
+            font-size: 1.5rem;
+        }
+        
+        .user-details p {
+            margin: 0.25rem 0 0 0;
+            color: var(--gray-600);
+            font-size: 0.875rem;
+        }
+        
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+        
+        .dashboard-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: var(--radius-2xl);
+            padding: 2rem;
+            box-shadow: var(--shadow-xl);
+        }
+        
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+        
+        .card-header h3 {
+            color: var(--gray-800);
+            font-size: 1.25rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+        }
+        
+        .stat-item {
+            background: var(--gray-50);
+            border-radius: var(--radius-lg);
+            padding: 1.5rem;
+            text-align: center;
+            transition: all var(--transition-normal);
+        }
+        
+        .stat-item:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+        }
+        
+        .stat-number {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--primary-color);
+            margin-bottom: 0.5rem;
+        }
+        
+        .stat-label {
+            color: var(--gray-600);
+            font-size: 0.875rem;
+        }
+        
+        .reports-list {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        
+        .report-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem;
+            background: var(--gray-50);
+            border-radius: var(--radius-lg);
+            margin-bottom: 0.75rem;
+            transition: all var(--transition-normal);
+        }
+        
+        .report-item:hover {
+            transform: translateX(4px);
+            box-shadow: var(--shadow-md);
+        }
+        
+        .report-info h4 {
+            margin: 0 0 0.25rem 0;
+            color: var(--gray-800);
+            font-size: 0.875rem;
+        }
+        
+        .report-info p {
+            margin: 0;
+            color: var(--gray-600);
+            font-size: 0.75rem;
+        }
+        
+        .report-status {
+            padding: 0.25rem 0.75rem;
+            border-radius: var(--radius-sm);
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+        
+        .status-pending {
+            background: rgba(245, 158, 11, 0.1);
+            color: var(--warning-color);
+        }
+        
+        .status-completed {
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--success-color);
+        }
+        
+        .actions-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+        
+        .action-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: var(--radius-xl);
+            padding: 1.5rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all var(--transition-normal);
+            border: 2px solid transparent;
+        }
+        
+        .action-card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-xl);
+            border-color: var(--primary-color);
+        }
+        
+        .action-card i {
+            font-size: 2rem;
+            color: var(--primary-color);
+            margin-bottom: 1rem;
+        }
+        
+        .action-card h4 {
+            margin: 0 0 0.5rem 0;
+            color: var(--gray-800);
+            font-size: 1rem;
+        }
+        
+        .action-card p {
+            margin: 0;
+            color: var(--gray-600);
+            font-size: 0.875rem;
+        }
+        
+        .back-btn {
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: var(--radius-lg);
+            cursor: pointer;
+            font-weight: 500;
+            transition: all var(--transition-normal);
+        }
+        
+        .back-btn:hover {
+            background: var(--primary-dark);
+            transform: translateY(-2px);
+        }
+        
+        /* Report Form Modal */
+        .report-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            overflow-y: auto;
+        }
+
+        .report-modal.show {
+            display: flex;
+        }
+
+        .report-modal-content {
+            background: white;
+            border-radius: var(--radius-2xl);
+            max-width: 900px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: var(--shadow-xl);
+            margin: 2rem auto;
+        }
+
+        .report-modal-header {
+            padding: 2rem;
+            border-bottom: 2px solid var(--gray-200);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .report-modal-header h2 {
+            margin: 0;
+            color: var(--gray-800);
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: var(--gray-600);
+            padding: 0;
+            width: 30px;
+            height: 30px;
+        }
+
+        .modal-close:hover {
+            color: var(--gray-800);
+        }
+
+        .report-form-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            padding: 2rem;
+        }
+
+        .image-upload-section {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .image-preview {
+            width: 100%;
+            min-height: 300px;
+            border: 2px dashed var(--gray-300);
+            border-radius: var(--radius-lg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--gray-50);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .image-preview img {
+            max-width: 100%;
+            max-height: 300px;
+            object-fit: contain;
+        }
+
+        .image-preview-placeholder {
+            text-align: center;
+            color: var(--gray-500);
+        }
+
+        .image-preview-placeholder i {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            display: block;
+        }
+
+        .file-input-wrapper {
+            position: relative;
+            overflow: hidden;
+            display: inline-block;
+        }
+
+        .file-input-wrapper input[type=file] {
+            position: absolute;
+            left: -9999px;
+        }
+
+        .file-input-label {
+            display: inline-block;
+            padding: 0.75rem 1.5rem;
+            background: var(--primary-color);
+            color: white;
+            border-radius: var(--radius-lg);
+            cursor: pointer;
+            transition: all var(--transition-normal);
+        }
+
+        .file-input-label:hover {
+            background: var(--primary-dark);
+        }
+
+        .form-section {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .form-group label {
+            color: var(--gray-700);
+            font-weight: 500;
+            font-size: 0.875rem;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            padding: 0.75rem;
+            border: 2px solid var(--gray-300);
+            border-radius: var(--radius-lg);
+            font-size: 0.875rem;
+            transition: all var(--transition-normal);
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: var(--primary-color);
+        }
+
+        .star-rating {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+        }
+
+        .star {
+            font-size: 1.5rem;
+            color: var(--gray-300);
+            cursor: pointer;
+            transition: all var(--transition-normal);
+        }
+
+        .star.active {
+            color: #fbbf24;
+        }
+
+        .star:hover {
+            transform: scale(1.1);
+        }
+
+        .user-details-section {
+            grid-column: 1 / -1;
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 2px solid var(--gray-200);
+        }
+
+        .user-details-section h3 {
+            margin: 0 0 1rem 0;
+            color: var(--gray-800);
+            font-size: 1.125rem;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+
+        .form-buttons {
+            display: flex;
+            gap: 1rem;
+            justify-content: flex-end;
+            padding: 1.5rem 2rem;
+            border-top: 2px solid var(--gray-200);
+        }
+
+        .btn-primary {
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 0.75rem 2rem;
+            border-radius: var(--radius-lg);
+            cursor: pointer;
+            font-weight: 500;
+            transition: all var(--transition-normal);
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-dark);
+        }
+
+        .btn-secondary {
+            background: var(--gray-200);
+            color: var(--gray-800);
+            border: none;
+            padding: 0.75rem 2rem;
+            border-radius: var(--radius-lg);
+            cursor: pointer;
+            font-weight: 500;
+            transition: all var(--transition-normal);
+        }
+
+        .btn-secondary:hover {
+            background: var(--gray-300);
+        }
+
+        .loading-spinner {
+            display: none;
+            text-align: center;
+            padding: 1rem;
+            color: var(--primary-color);
+        }
+
+        .loading-spinner.show {
+            display: block;
+        }
+
+        /* Profile Edit Modal */
+        .profile-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .profile-modal.show {
+            display: flex;
+        }
+
+        .profile-modal-content {
+            background: white;
+            border-radius: var(--radius-2xl);
+            max-width: 600px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: var(--shadow-xl);
+        }
+
+        .profile-photo-section {
+            text-align: center;
+            padding: 2rem;
+            border-bottom: 2px solid var(--gray-200);
+        }
+
+        .profile-photo-preview {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin: 0 auto 1rem;
+            border: 4px solid var(--primary-color);
+        }
+
+        @media (max-width: 768px) {
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .actions-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .report-form-container {
+                grid-template-columns: 1fr;
+            }
+
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard-container">
+        <!-- Dashboard Header -->
+        <div class="dashboard-header">
+            <div class="user-welcome">
+                <div class="user-avatar" id="userAvatar">U</div>
+                <div class="user-details">
+                    <h2 id="userName">Welcome, User!</h2>
+                    <p id="userType">User Account</p>
+                </div>
+            </div>
+            <button class="back-btn" onclick="goBackHome()">
+                <i class="fas fa-arrow-left"></i>
+                Back
+            </button>
+        </div>
+
+        <!-- Dashboard Grid -->
+        <div class="dashboard-grid">
+            <!-- Statistics Card -->
+            <div class="dashboard-card">
+                <div class="card-header">
+                    <h3><i class="fas fa-chart-line"></i> Your Statistics</h3>
+                </div>
+                <div class="stats-grid">
+                    <div class="stat-item">
+                        <div class="stat-number" id="totalPoints">0</div>
+                        <div class="stat-label">Total Points</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number" id="totalReports">0</div>
+                        <div class="stat-label">Reports Submitted</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number" id="userLevel">1</div>
+                        <div class="stat-label">Current Level</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number" id="userRank">#1</div>
+                        <div class="stat-label">Your Rank</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Reports Card -->
+            <div class="dashboard-card">
+                <div class="card-header">
+                    <h3><i class="fas fa-list"></i> Recent Reports</h3>
+                </div>
+                <div class="reports-list" id="reportsList">
+                    <p style="text-align: center; color: var(--gray-500); padding: 2rem;">No reports submitted yet</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Actions Grid -->
+        <div class="actions-grid">
+            <div class="action-card" onclick="submitReport()">
+                <i class="fas fa-plus"></i>
+                <h4>Submit Report</h4>
+                <p>Report garbage and earn points</p>
+            </div>
+            
+            <div class="action-card" onclick="viewLeaderboard()">
+                <i class="fas fa-trophy"></i>
+                <h4>Leaderboard</h4>
+                <p>See top performers</p>
+            </div>
+            
+            <div class="action-card" onclick="viewAchievements()">
+                <i class="fas fa-medal"></i>
+                <h4>Achievements</h4>
+                <p>View your badges</p>
+            </div>
+            
+            <div class="action-card" onclick="viewProfile()">
+                <i class="fas fa-user"></i>
+                <h4>Profile</h4>
+                <p>Edit your information</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Submit Report Modal -->
+    <div id="reportModal" class="report-modal">
+        <div class="report-modal-content">
+            <div class="report-modal-header">
+                <h2><i class="fas fa-plus"></i> Submit Garbage Report</h2>
+                <button class="modal-close" onclick="closeReportModal()">&times;</button>
+            </div>
+            <form id="reportForm" onsubmit="submitReportForm(event)">
+                <div class="report-form-container">
+                    <!-- Left: Image Upload -->
+                    <div class="image-upload-section">
+                        <div class="image-preview" id="imagePreview">
+                            <div class="image-preview-placeholder">
+                                <i class="fas fa-image"></i>
+                                <p>Upload garbage image</p>
+                            </div>
+                        </div>
+                        <div class="file-input-wrapper">
+                            <input type="file" id="garbageImage" accept="image/*" onchange="handleImageUpload(event)">
+                            <label for="garbageImage" class="file-input-label">
+                                <i class="fas fa-upload"></i> Choose Image
+                            </label>
+                        </div>
+                        <div class="loading-spinner" id="aiLoading">
+                            <i class="fas fa-spinner fa-spin"></i> Analyzing image...
+                        </div>
+                    </div>
+
+                    <!-- Right: Garbage Details -->
+                    <div class="form-section">
+                        <div class="form-group">
+                            <label for="garbageType">Garbage Type *</label>
+                            <select id="garbageType" required>
+                                <option value="">Select type (or upload image for AI analysis)</option>
+                                <option value="plastic">Plastic</option>
+                                <option value="paper">Paper</option>
+                                <option value="glass">Glass</option>
+                                <option value="metal">Metal</option>
+                                <option value="organic">Organic</option>
+                                <option value="hazardous">Hazardous</option>
+                                <option value="other">Other</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Priority (1-5 stars) *</label>
+                            <div class="star-rating" id="starRating">
+                                <span class="star" data-rating="1" onclick="setRating(1)">★</span>
+                                <span class="star" data-rating="2" onclick="setRating(2)">★</span>
+                                <span class="star" data-rating="3" onclick="setRating(3)">★</span>
+                                <span class="star" data-rating="4" onclick="setRating(4)">★</span>
+                                <span class="star" data-rating="5" onclick="setRating(5)">★</span>
+                            </div>
+                            <small id="priorityPercentage">Priority: 0%</small>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="dueDate">Due Date for Collection *</label>
+                            <input type="date" id="dueDate" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="reportLocation">Location *</label>
+                            <input type="text" id="reportLocation" placeholder="Enter location" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="reportDescription">Description</label>
+                            <textarea id="reportDescription" rows="3" placeholder="Additional details..."></textarea>
+                        </div>
+                    </div>
+
+                    <!-- User Details Section -->
+                    <div class="user-details-section">
+                        <h3><i class="fas fa-user"></i> Your Details</h3>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="userName">Name *</label>
+                                <input type="text" id="userName" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="userMobile">Mobile Number *</label>
+                                <input type="tel" id="userMobile" required>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="userEmail">Email *</label>
+                                <input type="email" id="userEmail" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="userAltMobile">Alternate Mobile</label>
+                                <input type="tel" id="userAltMobile">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="userAddress">Address *</label>
+                            <textarea id="userAddress" rows="2" required></textarea>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-buttons">
+                    <button type="button" class="btn-secondary" onclick="closeReportModal()">Cancel</button>
+                    <button type="submit" class="btn-primary">Submit Report</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Edit Profile Modal -->
+    <div id="profileModal" class="profile-modal">
+        <div class="profile-modal-content">
+            <div class="report-modal-header">
+                <h2><i class="fas fa-user-edit"></i> Edit Profile</h2>
+                <button class="modal-close" onclick="closeProfileModal()">&times;</button>
+            </div>
+            <form id="profileForm" onsubmit="submitProfileForm(event)">
+                <div class="profile-photo-section">
+                    <img id="profilePhotoPreview" class="profile-photo-preview" src="" alt="Profile Photo">
+                    <div class="file-input-wrapper">
+                        <input type="file" id="profilePhoto" accept="image/*" onchange="handleProfilePhotoUpload(event)">
+                        <label for="profilePhoto" class="file-input-label">
+                            <i class="fas fa-camera"></i> Change Photo
+                        </label>
+                    </div>
+                </div>
+                <div style="padding: 2rem;">
+                    <div class="form-group">
+                        <label for="editName">Name *</label>
+                        <input type="text" id="editName" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="editAge">Age</label>
+                        <input type="number" id="editAge" min="1" max="120">
+                    </div>
+                    <div class="form-group">
+                        <label for="editCollege">College Name</label>
+                        <input type="text" id="editCollege">
+                    </div>
+                    <div class="form-group">
+                        <label for="editDepartment">Department</label>
+                        <input type="text" id="editDepartment">
+                    </div>
+                </div>
+                <div class="form-buttons">
+                    <button type="button" class="btn-secondary" onclick="closeProfileModal()">Cancel</button>
+                    <button type="submit" class="btn-primary">Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Initialize dashboard
+        document.addEventListener('DOMContentLoaded', function() {
+            loadDashboard();
+        });
+
+        // Load dashboard data
+        function loadDashboard() {
+            const user = userManager.currentUser;
+            if (!user) {
+                window.close();
+                return;
+            }
+
+            // Update user info
+            document.getElementById('userName').textContent = `Welcome, ${user.name}!`;
+            document.getElementById('userType').textContent = `${user.type.charAt(0).toUpperCase() + user.type.slice(1)} Account`;
+            document.getElementById('userAvatar').textContent = user.name.charAt(0).toUpperCase();
+
+            // Fetch reports from backend and update stats
+            fetchUserReportsAndUpdateStats();
+        }
+
+        // Fetch reports from backend and update stats
+        function fetchUserReportsAndUpdateStats() {
+            const user = userManager.currentUser;
+            if (!user) return;
+
+            // Fetch reports from backend
+            fetch('http://localhost:8080/api/reports?user_id=' + (user.id || 1))
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success' && data.data) {
+                        try {
+                            const reports = JSON.parse(data.data);
+                            
+                            // Update user's reports array
+                            user.reports = reports.map(report => ({
+                                id: report.report_id.toString(),
+                                type: report.garbage_type || 'other',
+                                location: report.location || '',
+                                description: report.description || '',
+                                status: report.status === 1 ? 'pending' : 
+                                        report.status === 2 ? 'in_progress' : 
+                                        report.status === 3 ? 'completed' : 'pending',
+                                priority: report.priority_percentage || 0,
+                                createdAt: report.created_at ? new Date(report.created_at * 1000).toISOString() : new Date().toISOString(),
+                                points: calculatePointsForType(report.garbage_type || 'other')
+                            }));
+
+                            // Calculate total points from reports
+                            let totalPoints = 0;
+                            user.reports.forEach(report => {
+                                totalPoints += report.points || 0;
+                            });
+                            user.points = totalPoints;
+                            user.level = Math.floor(totalPoints / 100) + 1;
+
+                            // Save updated user
+                            userManager.saveCurrentUser(user);
+                            userManager.saveUsers();
+
+                            // Update UI
+                            updateUserStats();
+                            updateReportsList();
+                        } catch (e) {
+                            console.error('Error parsing reports:', e);
+                            updateUserStats();
+                            updateReportsList();
+                        }
+                    } else {
+                        updateUserStats();
+                        updateReportsList();
+                    }
+                })
+                .catch(error => {
+                    console.error('Error fetching reports:', error);
+                    updateUserStats();
+                    updateReportsList();
+                });
+        }
+
+        // Calculate points for garbage type
+        function calculatePointsForType(type) {
+            const pointValues = {
+                'plastic': 10,
+                'paper': 8,
+                'glass': 12,
+                'metal': 15,
+                'organic': 5,
+                'hazardous': 20,
+                'other': 5
+            };
+            return pointValues[type.toLowerCase()] || 5;
+        }
+
+        // Update user statistics display
+        function updateUserStats() {
+            const user = userManager.currentUser;
+            if (!user) return;
+
+            document.getElementById('totalPoints').textContent = user.points || 0;
+            document.getElementById('totalReports').textContent = user.reports ? user.reports.length : 0;
+            document.getElementById('userLevel').textContent = user.level || 1;
+            document.getElementById('userRank').textContent = `#${userManager.getUserRank()}`;
+        }
+
+        // Update reports list
+        function updateReportsList() {
+            const user = userManager.currentUser;
+            const reportsList = document.getElementById('reportsList');
+            
+            if (!user || !user.reports || user.reports.length === 0) {
+                reportsList.innerHTML = '<p style="text-align: center; color: var(--gray-500); padding: 2rem;">No reports submitted yet</p>';
+                return;
+            }
+
+            // Sort by creation date (newest first) and take last 10
+            const recentReports = [...user.reports]
+                .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+                .slice(0, 10);
+
+            reportsList.innerHTML = recentReports.map(report => {
+                const date = new Date(report.createdAt);
+                const statusClass = report.status === 'completed' ? 'status-completed' : 
+                                  report.status === 'in_progress' ? 'status-pending' : 'status-pending';
+                const statusText = report.status === 'completed' ? 'Completed' : 
+                                 report.status === 'in_progress' ? 'In Progress' : 'Pending';
+                
+                return `
+                <div class="report-item">
+                    <div class="report-info">
+                        <h4>${(report.type || 'Other').charAt(0).toUpperCase() + (report.type || 'Other').slice(1)} Report</h4>
+                        <p>${report.location || 'No location'} • ${date.toLocaleDateString()}</p>
+                    </div>
+                    <div class="report-status ${statusClass}">
+                        ${statusText}
+                    </div>
+                </div>
+            `;
+            }).join('');
+        }
+
+        // Global variables
+        let currentRating = 0;
+        let uploadedImageFile = null;
+        let profilePhotoFile = null;
+
+        // Action functions
+        function submitReport() {
+            const user = userManager.currentUser;
+            if (!user) {
+                showNotification('Please login first!', 'error');
+                return;
+            }
+
+            // Pre-fill user details
+            document.getElementById('userName').value = user.name || '';
+            document.getElementById('userEmail').value = user.email || '';
+            document.getElementById('userMobile').value = user.phone || '';
+            document.getElementById('userAddress').value = user.address || '';
+
+            // Set minimum date to today
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('dueDate').setAttribute('min', today);
+
+            document.getElementById('reportModal').classList.add('show');
+        }
+
+        function closeReportModal() {
+            document.getElementById('reportModal').classList.remove('show');
+            document.getElementById('reportForm').reset();
+            document.getElementById('imagePreview').innerHTML = `
+                <div class="image-preview-placeholder">
+                    <i class="fas fa-image"></i>
+                    <p>Upload garbage image</p>
+                </div>
+            `;
+            currentRating = 0;
+            uploadedImageFile = null;
+            updateStarRating(0);
+        }
+
+        function handleImageUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            uploadedImageFile = file;
+            const reader = new FileReader();
+            
+            reader.onload = function(e) {
+                document.getElementById('imagePreview').innerHTML = `<img src="${e.target.result}" alt="Garbage Image">`;
+                
+                // Analyze image with AI
+                analyzeImageWithAI(file);
+            };
+            
+            reader.readAsDataURL(file);
+        }
+
+        function analyzeImageWithAI(imageFile) {
+            document.getElementById('aiLoading').classList.add('show');
+            
+            // Create FormData to send image
+            const formData = new FormData();
+            formData.append('image', imageFile);
+
+            // Send to backend API which will call Python script
+            fetch('http://localhost:8080/api/analyze-image', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(data => {
+                document.getElementById('aiLoading').classList.remove('show');
+                
+                // Parse the response - data.data might be a JSON string
+                let garbageType = null;
+                if (data.status === 'success') {
+                    if (data.data) {
+                        try {
+                            const parsed = typeof data.data === 'string' ? JSON.parse(data.data) : data.data;
+                            garbageType = parsed.garbage_type;
+                        } catch (e) {
+                            // Try direct access
+                            garbageType = data.garbage_type || data.data?.garbage_type;
+                        }
+                    } else {
+                        garbageType = data.garbage_type;
+                    }
+                }
+                
+                if (garbageType) {
+                    document.getElementById('garbageType').value = garbageType;
+                    showNotification(`AI detected: ${garbageType.charAt(0).toUpperCase() + garbageType.slice(1)}`, 'success');
+                } else {
+                    showNotification('Could not determine garbage type. Please select manually.', 'info');
+                }
+            })
+            .catch(error => {
+                document.getElementById('aiLoading').classList.remove('show');
+                console.error('AI analysis error:', error);
+                showNotification('AI analysis unavailable. Please select garbage type manually.', 'info');
+            });
+        }
+
+        function setRating(rating) {
+            currentRating = rating;
+            updateStarRating(rating);
+            
+            // Convert to percentage: 1=20%, 2=40%, 3=60%, 4=80%, 5=100%
+            const percentage = rating * 20;
+            document.getElementById('priorityPercentage').textContent = `Priority: ${percentage}%`;
+        }
+
+        function updateStarRating(rating) {
+            const stars = document.querySelectorAll('.star');
+            stars.forEach((star, index) => {
+                if (index < rating) {
+                    star.classList.add('active');
+                } else {
+                    star.classList.remove('active');
+                }
+            });
+        }
+
+        function submitReportForm(event) {
+            event.preventDefault();
+
+            if (currentRating === 0) {
+                showNotification('Please select a priority rating!', 'error');
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('garbage_type', document.getElementById('garbageType').value);
+            formData.append('priority_percentage', currentRating * 20);
+            formData.append('due_date', document.getElementById('dueDate').value);
+            formData.append('location', document.getElementById('reportLocation').value);
+            formData.append('description', document.getElementById('reportDescription').value);
+            formData.append('user_name', document.getElementById('userName').value);
+            formData.append('user_mobile', document.getElementById('userMobile').value);
+            formData.append('user_email', document.getElementById('userEmail').value);
+            formData.append('user_alt_mobile', document.getElementById('userAltMobile').value);
+            formData.append('user_address', document.getElementById('userAddress').value);
+            
+            if (uploadedImageFile) {
+                formData.append('image', uploadedImageFile);
+            }
+
+            showNotification('Submitting report...', 'info');
+
+            fetch('http://localhost:8080/api/reports', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    showNotification('Report submitted successfully!', 'success');
+                    closeReportModal();
+                    
+                    // Add report to local storage immediately
+                    const user = userManager.currentUser;
+                    if (user) {
+                        const newReport = {
+                            id: Date.now().toString(),
+                            type: document.getElementById('garbageType').value,
+                            location: document.getElementById('reportLocation').value,
+                            description: document.getElementById('reportDescription').value,
+                            status: 'pending',
+                            priority: currentRating * 20,
+                            createdAt: new Date().toISOString(),
+                            points: calculatePointsForType(document.getElementById('garbageType').value)
+                        };
+                        
+                        if (!user.reports) user.reports = [];
+                        user.reports.push(newReport);
+                        user.points = (user.points || 0) + newReport.points;
+                        user.level = Math.floor(user.points / 100) + 1;
+                        
+                        userManager.saveCurrentUser(user);
+                        userManager.saveUsers();
+                    }
+                    
+                    // Reload dashboard to fetch latest from backend
+                    setTimeout(() => {
+                        loadDashboard();
+                    }, 500);
+                } else {
+                    showNotification(data.message || 'Failed to submit report', 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                // Even if backend fails, update locally
+                const user = userManager.currentUser;
+                if (user) {
+                    const newReport = {
+                        id: Date.now().toString(),
+                        type: document.getElementById('garbageType').value,
+                        location: document.getElementById('reportLocation').value,
+                        description: document.getElementById('reportDescription').value,
+                        status: 'pending',
+                        priority: currentRating * 20,
+                        createdAt: new Date().toISOString(),
+                        points: calculatePointsForType(document.getElementById('garbageType').value)
+                    };
+                    
+                    if (!user.reports) user.reports = [];
+                    user.reports.push(newReport);
+                    user.points = (user.points || 0) + newReport.points;
+                    user.level = Math.floor(user.points / 100) + 1;
+                    
+                    userManager.saveCurrentUser(user);
+                    userManager.saveUsers();
+                }
+                
+                showNotification('Report submitted successfully!', 'success');
+                closeReportModal();
+                setTimeout(() => {
+                    loadDashboard();
+                }, 500);
+            });
+        }
+
+        function viewLeaderboard() {
+            if (window.opener) {
+                window.opener.showLeaderboard();
+            } else {
+                showNotification('Leaderboard feature coming soon!', 'info');
+            }
+        }
+
+        function viewAchievements() {
+            showNotification('Achievements feature coming soon!', 'info');
+        }
+
+        function viewProfile() {
+            const user = userManager.currentUser;
+            if (!user) {
+                showNotification('Please login first!', 'error');
+                return;
+            }
+
+            // Pre-fill profile data
+            document.getElementById('editName').value = user.name || '';
+            document.getElementById('editAge').value = user.age || '';
+            document.getElementById('editCollege').value = user.college || '';
+            document.getElementById('editDepartment').value = user.department || '';
+            
+            if (user.profilePhoto) {
+                document.getElementById('profilePhotoPreview').src = user.profilePhoto;
+            } else {
+                document.getElementById('profilePhotoPreview').src = `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&size=150`;
+            }
+
+            document.getElementById('profileModal').classList.add('show');
+        }
+
+        function closeProfileModal() {
+            document.getElementById('profileModal').classList.remove('show');
+            profilePhotoFile = null;
+        }
+
+        function handleProfilePhotoUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            profilePhotoFile = file;
+            const reader = new FileReader();
+            
+            reader.onload = function(e) {
+                document.getElementById('profilePhotoPreview').src = e.target.result;
+            };
+            
+            reader.readAsDataURL(file);
+        }
+
+        function submitProfileForm(event) {
+            event.preventDefault();
+
+            const formData = new FormData();
+            formData.append('name', document.getElementById('editName').value);
+            formData.append('age', document.getElementById('editAge').value);
+            formData.append('college', document.getElementById('editCollege').value);
+            formData.append('department', document.getElementById('editDepartment').value);
+            
+            if (profilePhotoFile) {
+                formData.append('profile_photo', profilePhotoFile);
+            }
+
+            showNotification('Updating profile...', 'info');
+
+            fetch('http://localhost:8080/api/users/profile', {
+                method: 'PUT',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    // Update local user data
+                    const user = userManager.currentUser;
+                    user.name = document.getElementById('editName').value;
+                    user.age = document.getElementById('editAge').value;
+                    user.college = document.getElementById('editCollege').value;
+                    user.department = document.getElementById('editDepartment').value;
+                    if (data.profile_photo) {
+                        user.profilePhoto = data.profile_photo;
+                    }
+                    userManager.saveCurrentUser(user);
+                    
+                    showNotification('Profile updated successfully!', 'success');
+                    closeProfileModal();
+                    loadDashboard();
+                } else {
+                    showNotification(data.message || 'Failed to update profile', 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                // Update locally anyway
+                const user = userManager.currentUser;
+                user.name = document.getElementById('editName').value;
+                user.age = document.getElementById('editAge').value;
+                user.college = document.getElementById('editCollege').value;
+                user.department = document.getElementById('editDepartment').value;
+                userManager.saveCurrentUser(user);
+                
+                showNotification('Profile updated successfully!', 'success');
+                closeProfileModal();
+                loadDashboard();
+            });
+        }
+
+        function goBackHome() {
+            window.location.href = 'index.html';
+        }
+
+        // Show notification
+        function showNotification(message, type = 'info') {
+            const notification = document.createElement('div');
+            notification.className = `notification notification-${type}`;
+            notification.innerHTML = `
+                <div class="notification-content">
+                    <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : 'info-circle'}"></i>
+                    <span>${message}</span>
+                </div>
+            `;
+            
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.classList.add('show');
+            }, 100);
+            
+            setTimeout(() => {
+                notification.classList.remove('show');
+                setTimeout(() => {
+                    notification.remove();
+                }, 300);
+            }, 3000);
+        }
+    </script>
+</body>
+</html>
+

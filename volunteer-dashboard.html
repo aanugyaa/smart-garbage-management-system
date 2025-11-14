@@ -1,0 +1,1340 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Volunteer Dashboard - Smart Garbage Management System</title>
+    <link rel="stylesheet" href="assets/css/main.css">
+    <link rel="stylesheet" href="assets/css/animations.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="assets/js/auth.js"></script>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(135deg, #10b981, #3b82f6);
+            min-height: 100vh;
+        }
+        
+        .dashboard-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        
+        .dashboard-header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: var(--radius-2xl);
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: var(--shadow-xl);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .volunteer-welcome {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        
+        .volunteer-avatar {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+        
+        .volunteer-details h2 {
+            margin: 0;
+            color: var(--gray-800);
+            font-size: 1.5rem;
+        }
+        
+        .volunteer-details p {
+            margin: 0.25rem 0 0 0;
+            color: var(--gray-600);
+            font-size: 0.875rem;
+        }
+        
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+        
+        .dashboard-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: var(--radius-2xl);
+            padding: 2rem;
+            box-shadow: var(--shadow-xl);
+        }
+        
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+        
+        .card-header h3 {
+            color: var(--gray-800);
+            font-size: 1.25rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+        }
+        
+        .stat-item {
+            background: var(--gray-50);
+            border-radius: var(--radius-lg);
+            padding: 1.5rem;
+            text-align: center;
+            transition: all var(--transition-normal);
+        }
+        
+        .stat-item:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+        }
+        
+        .stat-number {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--primary-color);
+            margin-bottom: 0.5rem;
+        }
+        
+        .stat-label {
+            color: var(--gray-600);
+            font-size: 0.875rem;
+        }
+        
+        .tasks-list {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        
+        .task-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem;
+            background: var(--gray-50);
+            border-radius: var(--radius-lg);
+            margin-bottom: 0.75rem;
+            transition: all var(--transition-normal);
+        }
+        
+        .task-item:hover {
+            transform: translateX(4px);
+            box-shadow: var(--shadow-md);
+        }
+        
+        .task-info h4 {
+            margin: 0 0 0.25rem 0;
+            color: var(--gray-800);
+            font-size: 0.875rem;
+        }
+        
+        .task-info p {
+            margin: 0;
+            color: var(--gray-600);
+            font-size: 0.75rem;
+        }
+        
+        .task-status {
+            padding: 0.25rem 0.75rem;
+            border-radius: var(--radius-sm);
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+        
+        .status-available {
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--success-color);
+        }
+        
+        .status-assigned {
+            background: rgba(59, 130, 246, 0.1);
+            color: var(--secondary-color);
+        }
+        
+        .status-completed {
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--success-color);
+        }
+
+        .join-task-btn {
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: var(--radius-md);
+            cursor: pointer;
+            font-size: 0.875rem;
+            font-weight: 500;
+            transition: all var(--transition-normal);
+        }
+
+        .join-task-btn:hover {
+            background: var(--primary-dark);
+            transform: translateY(-2px);
+        }
+
+        .join-task-btn:disabled {
+            background: var(--gray-400);
+            cursor: not-allowed;
+        }
+
+        /* Confirmation Popup */
+        .confirmation-popup {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .confirmation-popup.show {
+            display: flex;
+        }
+
+        .confirmation-content {
+            background: white;
+            padding: 2rem;
+            border-radius: var(--radius-xl);
+            max-width: 400px;
+            width: 90%;
+            box-shadow: var(--shadow-xl);
+        }
+
+        .confirmation-content h3 {
+            margin: 0 0 1rem 0;
+            color: var(--gray-800);
+        }
+
+        .confirmation-content p {
+            margin: 0 0 1.5rem 0;
+            color: var(--gray-600);
+        }
+
+        .confirmation-buttons {
+            display: flex;
+            gap: 1rem;
+            justify-content: flex-end;
+        }
+
+        .confirmation-buttons button {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: var(--radius-lg);
+            cursor: pointer;
+            font-weight: 500;
+            transition: all var(--transition-normal);
+        }
+
+        .btn-confirm {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .btn-confirm:hover {
+            background: var(--primary-dark);
+        }
+
+        .btn-cancel {
+            background: var(--gray-200);
+            color: var(--gray-800);
+        }
+
+        .btn-cancel:hover {
+            background: var(--gray-300);
+        }
+
+        /* Guild Forms */
+        .guild-form {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .guild-form.show {
+            display: flex;
+        }
+
+        .guild-form-content {
+            background: white;
+            padding: 2rem;
+            border-radius: var(--radius-xl);
+            max-width: 500px;
+            width: 90%;
+            box-shadow: var(--shadow-xl);
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .guild-form-content h3 {
+            margin: 0 0 1.5rem 0;
+            color: var(--gray-800);
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: var(--gray-700);
+            font-weight: 500;
+        }
+
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 0.75rem;
+            border: 2px solid var(--gray-300);
+            border-radius: var(--radius-lg);
+            font-size: 0.875rem;
+            box-sizing: border-box;
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .form-buttons {
+            display: flex;
+            gap: 1rem;
+            justify-content: flex-end;
+        }
+
+        .form-buttons button {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: var(--radius-lg);
+            cursor: pointer;
+            font-weight: 500;
+            transition: all var(--transition-normal);
+        }
+
+        .btn-submit {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .btn-submit:hover {
+            background: var(--primary-dark);
+        }
+
+        .btn-close {
+            background: var(--gray-200);
+            color: var(--gray-800);
+        }
+
+        .btn-close:hover {
+            background: var(--gray-300);
+        }
+        
+        .guild-info {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            border-radius: var(--radius-lg);
+            padding: 1.5rem;
+            text-align: center;
+        }
+        
+        .guild-name {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+        
+        .guild-members {
+            font-size: 0.875rem;
+            opacity: 0.9;
+        }
+        
+        .actions-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+        
+        .action-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: var(--radius-xl);
+            padding: 1.5rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all var(--transition-normal);
+            border: 2px solid transparent;
+        }
+        
+        .action-card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-xl);
+            border-color: var(--primary-color);
+        }
+        
+        .action-card i {
+            font-size: 2rem;
+            color: var(--primary-color);
+            margin-bottom: 1rem;
+        }
+        
+        .action-card h4 {
+            margin: 0 0 0.5rem 0;
+            color: var(--gray-800);
+            font-size: 1rem;
+        }
+        
+        .action-card p {
+            margin: 0;
+            color: var(--gray-600);
+            font-size: 0.875rem;
+        }
+        
+        .back-btn {
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: var(--radius-lg);
+            cursor: pointer;
+            font-weight: 500;
+            transition: all var(--transition-normal);
+        }
+        
+        .back-btn:hover {
+            background: var(--primary-dark);
+            transform: translateY(-2px);
+        }
+        
+        @media (max-width: 768px) {
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .actions-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard-container">
+        <!-- Dashboard Header -->
+        <div class="dashboard-header">
+            <div class="volunteer-welcome">
+                <div class="volunteer-avatar" id="volunteerAvatar">V</div>
+                <div class="volunteer-details">
+                    <h2 id="volunteerName">Welcome, Volunteer!</h2>
+                    <p id="volunteerType">Volunteer Account</p>
+                </div>
+            </div>
+            <button class="back-btn" onclick="goBackHome()">
+                <i class="fas fa-arrow-left"></i>
+                Back
+            </button>
+        </div>
+
+        <!-- Dashboard Grid -->
+        <div class="dashboard-grid">
+            <!-- Statistics Card -->
+            <div class="dashboard-card">
+                <div class="card-header">
+                    <h3><i class="fas fa-chart-line"></i> Your Statistics</h3>
+                </div>
+                <div class="stats-grid">
+                    <div class="stat-item">
+                        <div class="stat-number" id="totalPoints">0</div>
+                        <div class="stat-label">Total Points</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number" id="tasksCompleted">0</div>
+                        <div class="stat-label">Tasks Completed</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number" id="volunteerLevel">1</div>
+                        <div class="stat-label">Volunteer Level</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number" id="volunteerRank">#1</div>
+                        <div class="stat-label">Your Rank</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Guild Info Card -->
+            <div class="dashboard-card">
+                <div class="card-header">
+                    <h3><i class="fas fa-users"></i> Your Guild</h3>
+                </div>
+                <div class="guild-info" id="guildInfoSection">
+                    <div id="noGuildMessage" style="text-align: center; padding: 2rem; color: var(--gray-500);">
+                        <i class="fas fa-users" style="font-size: 3rem; margin-bottom: 1rem; display: block; opacity: 0.5;"></i>
+                        <p>You haven't joined a guild yet</p>
+                        <p style="font-size: 0.875rem; margin-top: 0.5rem;">Create or join a guild to get started</p>
+                    </div>
+                    <div id="guildDetails" style="display: none;">
+                        <div class="guild-header">
+                            <div class="guild-name" id="guildName">Eco Warriors</div>
+                            <div class="guild-id" id="guildId" style="font-size: 0.75rem; color: var(--gray-600); margin-top: 0.25rem;">
+                                <i class="fas fa-hashtag"></i> <span id="guildIdValue">-</span>
+                            </div>
+                        </div>
+                        <div class="guild-stats" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-top: 1rem;">
+                            <div>
+                                <div class="guild-members" id="guildMembers">12 Active Members</div>
+                                <div style="font-size: 0.75rem; color: var(--gray-600); margin-top: 0.25rem;">Total Points: <span id="guildPoints">0</span></div>
+                            </div>
+                            <div>
+                                <div style="font-size: 0.875rem; color: var(--gray-700);">Level: <span id="guildLevel">1</span></div>
+                                <div style="font-size: 0.75rem; color: var(--gray-600); margin-top: 0.25rem;">Created: <span id="guildCreated">-</span></div>
+                            </div>
+                        </div>
+                        <div class="guild-members-list" id="guildMembersList" style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--gray-200);">
+                            <h4 style="font-size: 0.875rem; color: var(--gray-700); margin-bottom: 0.5rem;">Members:</h4>
+                            <div id="guildMembersListContent" style="font-size: 0.75rem; color: var(--gray-600);">
+                                Loading members...
+                            </div>
+                        </div>
+                        <div class="guild-notifications" id="guildNotifications" style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--gray-200);">
+                            <h4 style="font-size: 0.875rem; color: var(--gray-700); margin-bottom: 0.5rem;">
+                                <i class="fas fa-bell"></i> Notifications
+                            </h4>
+                            <div id="guildNotificationsContent" style="font-size: 0.75rem; color: var(--gray-600);">
+                                <p>No pending requests</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Available Tasks Section -->
+        <div class="dashboard-card" style="margin-bottom: 2rem;">
+            <div class="card-header">
+                <h3><i class="fas fa-tasks"></i> Available Tasks</h3>
+            </div>
+            <div class="tasks-list" id="availableTasksList">
+                <p style="text-align: center; color: var(--gray-500); padding: 2rem;">Loading available tasks...</p>
+            </div>
+        </div>
+
+        <!-- My Tasks Section -->
+        <div class="dashboard-card" style="margin-bottom: 2rem;">
+            <div class="card-header">
+                <h3><i class="fas fa-user-check"></i> My Tasks</h3>
+            </div>
+            <div class="tasks-list" id="myTasksList">
+                <p style="text-align: center; color: var(--gray-500); padding: 2rem;">No tasks assigned yet</p>
+            </div>
+        </div>
+
+        <!-- Actions Grid -->
+        <div class="actions-grid">
+            <div class="action-card" onclick="createGuild()">
+                <i class="fas fa-plus"></i>
+                <h4>Create Guild</h4>
+                <p>Start your own team</p>
+            </div>
+            
+            <div class="action-card" onclick="joinGuild()">
+                <i class="fas fa-users"></i>
+                <h4>Join Guild</h4>
+                <p>Join an existing guild</p>
+            </div>
+            
+            <div class="action-card" onclick="viewLeaderboard()">
+                <i class="fas fa-trophy"></i>
+                <h4>Leaderboard</h4>
+                <p>See top volunteers</p>
+            </div>
+            
+            <div class="action-card" onclick="viewAchievements()">
+                <i class="fas fa-medal"></i>
+                <h4>Achievements</h4>
+                <p>View your badges</p>
+            </div>
+            
+            <div class="action-card" onclick="editProfile()">
+                <i class="fas fa-user-edit"></i>
+                <h4>Edit Profile</h4>
+                <p>Update your information</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Confirmation Popup -->
+    <div id="confirmationPopup" class="confirmation-popup">
+        <div class="confirmation-content">
+            <h3>Confirm Action</h3>
+            <p id="confirmationMessage">Are you sure you want to join this task?</p>
+            <div class="confirmation-buttons">
+                <button class="btn-cancel" onclick="cancelConfirmation()">Cancel</button>
+                <button class="btn-confirm" onclick="confirmAction()">Confirm</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Create Guild Form -->
+    <div id="createGuildForm" class="guild-form">
+        <div class="guild-form-content">
+            <h3><i class="fas fa-plus"></i> Create Guild</h3>
+            <form id="createGuildFormElement" onsubmit="submitCreateGuild(event)">
+                <div class="form-group">
+                    <label for="guildName">Guild Name *</label>
+                    <input type="text" id="guildName" required placeholder="Enter guild name">
+                </div>
+                <div class="form-group">
+                    <label for="guildPhoto">Guild Photo (URL - Optional)</label>
+                    <input type="url" id="guildPhoto" placeholder="https://example.com/photo.jpg">
+                </div>
+                <div class="form-group">
+                    <label for="initialMembers">Initial Members *</label>
+                    <input type="number" id="initialMembers" required min="1" value="1" placeholder="Number of members">
+                </div>
+                <div class="form-buttons">
+                    <button type="button" class="btn-close" onclick="closeCreateGuildForm()">Cancel</button>
+                    <button type="submit" class="btn-submit">Create Guild</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Join Guild Form -->
+    <div id="joinGuildForm" class="guild-form">
+        <div class="guild-form-content">
+            <h3><i class="fas fa-users"></i> Join Guild</h3>
+            <form id="joinGuildFormElement" onsubmit="submitJoinGuild(event)">
+                <div class="form-group">
+                    <label for="guildIdentifier">Guild Name or ID *</label>
+                    <input type="text" id="guildIdentifier" required placeholder="Enter guild name or ID">
+                </div>
+                <div class="form-buttons">
+                    <button type="button" class="btn-close" onclick="closeJoinGuildForm()">Cancel</button>
+                    <button type="submit" class="btn-submit">Send Join Request</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Edit Profile Modal -->
+    <div id="profileModal" class="guild-form">
+        <div class="guild-form-content">
+            <div class="report-modal-header" style="padding: 2rem; border-bottom: 2px solid var(--gray-200); display: flex; justify-content: space-between; align-items: center;">
+                <h2 style="margin: 0; color: var(--gray-800);"><i class="fas fa-user-edit"></i> Edit Profile</h2>
+                <button class="modal-close" onclick="closeProfileModal()" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--gray-600); padding: 0; width: 30px; height: 30px;">&times;</button>
+            </div>
+            <form id="profileForm" onsubmit="submitProfileForm(event)">
+                <div class="profile-photo-section" style="text-align: center; padding: 2rem; border-bottom: 2px solid var(--gray-200);">
+                    <img id="profilePhotoPreview" class="profile-photo-preview" src="" alt="Profile Photo" style="width: 150px; height: 150px; border-radius: 50%; object-fit: cover; margin: 0 auto 1rem; border: 4px solid var(--primary-color);">
+                    <div class="file-input-wrapper">
+                        <input type="file" id="profilePhoto" accept="image/*" onchange="handleProfilePhotoUpload(event)">
+                        <label for="profilePhoto" class="file-input-label">
+                            <i class="fas fa-camera"></i> Change Photo
+                        </label>
+                    </div>
+                </div>
+                <div style="padding: 2rem;">
+                    <div class="form-group">
+                        <label for="editName">Name *</label>
+                        <input type="text" id="editName" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="editAge">Age</label>
+                        <input type="number" id="editAge" min="1" max="120">
+                    </div>
+                    <div class="form-group">
+                        <label for="editPhone">Phone Number</label>
+                        <input type="tel" id="editPhone">
+                    </div>
+                    <div class="form-group">
+                        <label for="editEmail">Email</label>
+                        <input type="email" id="editEmail">
+                    </div>
+                    <div class="form-group">
+                        <label for="editAddress">Address</label>
+                        <textarea id="editAddress" rows="2"></textarea>
+                    </div>
+                </div>
+                <div class="form-buttons">
+                    <button type="button" class="btn-close" onclick="closeProfileModal()">Cancel</button>
+                    <button type="submit" class="btn-submit">Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Initialize dashboard
+        document.addEventListener('DOMContentLoaded', function() {
+            loadVolunteerDashboard();
+        });
+
+        // Global variables
+        let availableTasks = [];
+        let myTasks = [];
+        let pendingConfirmation = null;
+        let currentVolunteerId = null;
+        let profilePhotoFile = null;
+        let currentGuildData = null;
+
+        // Load volunteer dashboard data
+        function loadVolunteerDashboard() {
+            const user = userManager.currentUser;
+            if (!user) {
+                window.location.href = 'index.html';
+                return;
+            }
+
+            // Store volunteer ID
+            currentVolunteerId = user.id || 1; // Use user ID or default
+
+            // Update volunteer info
+            document.getElementById('volunteerName').textContent = `Welcome, ${user.name}!`;
+            document.getElementById('volunteerType').textContent = `${user.type.charAt(0).toUpperCase() + user.type.slice(1)} Account`;
+            if (user.profilePhoto) {
+                const avatar = document.getElementById('volunteerAvatar');
+                avatar.innerHTML = `<img src="${user.profilePhoto}" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover;">`;
+            } else {
+                document.getElementById('volunteerAvatar').textContent = user.name.charAt(0).toUpperCase();
+            }
+
+            // Initialize available tasks (only on first load)
+            if (availableTasks.length === 0) {
+                availableTasks = [
+                    { id: 1, title: 'Clean Up Central Park', description: 'High Priority • 2 hours • 50 points', priority: 'High', points: 50 },
+                    { id: 2, title: 'Recycle Drive - Downtown', description: 'Medium Priority • 3 hours • 75 points', priority: 'Medium', points: 75 },
+                    { id: 3, title: 'Beach Cleanup', description: 'Low Priority • 4 hours • 100 points', priority: 'Low', points: 100 },
+                    { id: 4, title: 'Community Garden Cleanup', description: 'Medium Priority • 2.5 hours • 60 points', priority: 'Medium', points: 60 }
+                ];
+            }
+
+            // Load my tasks from storage
+            const storedTasks = localStorage.getItem(`volunteer_${currentVolunteerId}_tasks`);
+            if (storedTasks) {
+                myTasks = JSON.parse(storedTasks);
+            }
+
+            // Update statistics
+            updateVolunteerStats();
+
+            // Load guild info
+            loadGuildInfo();
+
+            // Load tasks
+            loadAvailableTasks();
+            loadMyTasks();
+        }
+
+        // Load guild information
+        function loadGuildInfo() {
+            const user = userManager.currentUser;
+            if (!user) return;
+
+            // Fetch guild info from backend if user has a guild
+            if (user.guildId || user.guildName) {
+                fetch('http://localhost:8080/api/guilds')
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.status === 'success' && data.data) {
+                            try {
+                                const guilds = JSON.parse(data.data);
+                                const userGuild = guilds.find(g => 
+                                    g.guild_id == user.guildId || 
+                                    g.name === user.guildName
+                                );
+                                
+                                if (userGuild) {
+                                    currentGuildData = userGuild;
+                                    displayGuildInfo(userGuild);
+                                    loadGuildNotifications(userGuild.guild_id);
+                                } else {
+                                    showNoGuild();
+                                }
+                            } catch (e) {
+                                console.error('Error parsing guilds:', e);
+                                showNoGuild();
+                            }
+                        } else {
+                            showNoGuild();
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error fetching guild info:', error);
+                        // Fallback to local data
+                        if (user.guildName) {
+                            displayGuildInfoLocal(user);
+                        } else {
+                            showNoGuild();
+                        }
+                    });
+            } else {
+                showNoGuild();
+            }
+        }
+
+        // Display guild information
+        function displayGuildInfo(guild) {
+            document.getElementById('noGuildMessage').style.display = 'none';
+            document.getElementById('guildDetails').style.display = 'block';
+            
+            document.getElementById('guildName').textContent = guild.name || 'Unknown Guild';
+            document.getElementById('guildIdValue').textContent = guild.guild_id || '-';
+            document.getElementById('guildMembers').textContent = `${guild.member_count || 0} Active Members`;
+            document.getElementById('guildPoints').textContent = guild.total_points || 0;
+            document.getElementById('guildLevel').textContent = guild.level || 1;
+            
+            if (guild.created_at) {
+                const createdDate = new Date(guild.created_at * 1000);
+                document.getElementById('guildCreated').textContent = createdDate.toLocaleDateString();
+            }
+            
+            // Display members
+            if (guild.members) {
+                const membersList = guild.members.split(',').filter(m => m.trim());
+                document.getElementById('guildMembersListContent').innerHTML = 
+                    membersList.length > 0 
+                        ? membersList.map(m => `<span style="display: inline-block; padding: 0.25rem 0.5rem; background: var(--gray-100); border-radius: var(--radius-sm); margin: 0.25rem;">Member #${m}</span>`).join('')
+                        : '<p>No members yet</p>';
+            } else {
+                document.getElementById('guildMembersListContent').innerHTML = '<p>No members yet</p>';
+            }
+        }
+
+        // Display guild info from local storage
+        function displayGuildInfoLocal(user) {
+            document.getElementById('noGuildMessage').style.display = 'none';
+            document.getElementById('guildDetails').style.display = 'block';
+            
+            document.getElementById('guildName').textContent = user.guildName || 'Unknown Guild';
+            document.getElementById('guildIdValue').textContent = user.guildId || '-';
+            document.getElementById('guildMembers').textContent = `${user.guildMembers || 0} Active Members`;
+            document.getElementById('guildPoints').textContent = user.guildPoints || 0;
+            document.getElementById('guildLevel').textContent = user.guildLevel || 1;
+            document.getElementById('guildCreated').textContent = user.guildCreated || '-';
+        }
+
+        // Show no guild message
+        function showNoGuild() {
+            document.getElementById('noGuildMessage').style.display = 'block';
+            document.getElementById('guildDetails').style.display = 'none';
+        }
+
+        // Load guild notifications
+        function loadGuildNotifications(guildId) {
+            // Fetch join requests for this guild from backend
+            // For now, check local storage for pending requests
+            const notificationsContent = document.getElementById('guildNotificationsContent');
+            
+            // In production, fetch from backend API
+            // For demo, check if there are any pending requests
+            const user = userManager.currentUser;
+            if (user && user.guildId === guildId) {
+                // Check for pending join requests (would come from backend)
+                // For now, show a placeholder
+                notificationsContent.innerHTML = '<p style="color: var(--gray-600);">No pending requests</p>';
+            } else {
+                notificationsContent.innerHTML = '<p style="color: var(--gray-600);">No pending requests</p>';
+            }
+        }
+
+        // Update volunteer statistics
+        function updateVolunteerStats() {
+            const user = userManager.currentUser;
+            if (!user) return;
+
+            // Calculate stats from tasks
+            const completedTasks = myTasks.filter(t => t.status === 'completed').length;
+            user.tasksCompleted = completedTasks;
+            
+            // Calculate points from completed tasks
+            let totalPoints = 0;
+            myTasks.forEach(task => {
+                if (task.status === 'completed' && task.points) {
+                    totalPoints += task.points;
+                }
+            });
+            user.points = totalPoints;
+            user.level = Math.floor(totalPoints / 100) + 1;
+
+            // Update UI
+            document.getElementById('totalPoints').textContent = user.points || 0;
+            document.getElementById('tasksCompleted').textContent = user.tasksCompleted || 0;
+            document.getElementById('volunteerLevel').textContent = user.level || 1;
+            document.getElementById('volunteerRank').textContent = `#${userManager.getUserRank()}`;
+
+            // Save updated user
+            userManager.saveCurrentUser(user);
+            userManager.saveUsers();
+        }
+
+        // Load available tasks
+        function loadAvailableTasks() {
+            // Filter out tasks that are already in myTasks
+            const myTaskIds = myTasks.map(t => t.id);
+            const filteredAvailableTasks = availableTasks.filter(t => !myTaskIds.includes(t.id));
+
+            const tasksList = document.getElementById('availableTasksList');
+            if (filteredAvailableTasks.length === 0) {
+                tasksList.innerHTML = '<p style="text-align: center; color: var(--gray-500); padding: 2rem;">No available tasks</p>';
+                return;
+            }
+
+            tasksList.innerHTML = filteredAvailableTasks.map(task => `
+                <div class="task-item">
+                    <div class="task-info">
+                        <h4>${task.title}</h4>
+                        <p>${task.description}</p>
+                    </div>
+                    <button class="join-task-btn" onclick="showJoinTaskConfirmation(${task.id})">
+                        Join Task
+                    </button>
+                </div>
+            `).join('');
+        }
+
+        // Load my tasks
+        function loadMyTasks() {
+            // Tasks are already loaded in loadVolunteerDashboard
+            // Just refresh the display
+            const tasksList = document.getElementById('myTasksList');
+            if (myTasks.length === 0) {
+                tasksList.innerHTML = '<p style="text-align: center; color: var(--gray-500); padding: 2rem;">No tasks assigned yet</p>';
+                return;
+            }
+
+            // Sort by join date (newest first)
+            const sortedTasks = [...myTasks].sort((a, b) => {
+                const dateA = a.joinedAt ? new Date(a.joinedAt) : new Date(0);
+                const dateB = b.joinedAt ? new Date(b.joinedAt) : new Date(0);
+                return dateB - dateA;
+            });
+
+            tasksList.innerHTML = sortedTasks.map(task => {
+                const statusClass = task.status === 'completed' ? 'status-completed' : 
+                                  task.status === 'in_progress' ? 'status-pending' : 'status-assigned';
+                const statusText = task.status === 'completed' ? 'Completed' : 
+                                 task.status === 'in_progress' ? 'In Progress' : 'Assigned';
+                
+                return `
+                <div class="task-item">
+                    <div class="task-info">
+                        <h4>${task.title}</h4>
+                        <p>${task.description}</p>
+                        ${task.joinedAt ? `<small style="color: var(--gray-500);">Joined: ${new Date(task.joinedAt).toLocaleDateString()}</small>` : ''}
+                    </div>
+                    <div class="task-status ${statusClass}">${statusText}</div>
+                </div>
+            `;
+            }).join('');
+        }
+
+        // Show join task confirmation
+        function showJoinTaskConfirmation(taskId) {
+            const task = availableTasks.find(t => t.id === taskId);
+            if (!task) return;
+
+            pendingConfirmation = { type: 'joinTask', taskId: taskId, task: task };
+            document.getElementById('confirmationMessage').textContent = `Are you sure you want to join "${task.title}"?`;
+            document.getElementById('confirmationPopup').classList.add('show');
+        }
+
+        // Confirm action
+        function confirmAction() {
+            if (!pendingConfirmation) return;
+
+            if (pendingConfirmation.type === 'joinTask') {
+                joinTask(pendingConfirmation.taskId);
+            }
+
+            cancelConfirmation();
+        }
+
+        // Cancel confirmation
+        function cancelConfirmation() {
+            pendingConfirmation = null;
+            document.getElementById('confirmationPopup').classList.remove('show');
+        }
+
+        // Join task
+        function joinTask(taskId) {
+            const task = availableTasks.find(t => t.id === taskId);
+            if (!task) return;
+
+            // Call backend API
+            fetch('http://localhost:8080/api/volunteer/join', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    task_id: taskId,
+                    volunteer_id: currentVolunteerId
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    // Remove from available tasks
+                    availableTasks = availableTasks.filter(t => t.id !== taskId);
+                    
+                    // Add to my tasks
+                    myTasks.push({ ...task, status: 'assigned', joinedAt: new Date().toISOString() });
+                    localStorage.setItem(`volunteer_${currentVolunteerId}_tasks`, JSON.stringify(myTasks));
+                    
+                    // Update stats
+                    updateVolunteerStats();
+                    
+                    // Reload lists
+                    loadAvailableTasks();
+                    loadMyTasks();
+                    
+                    showNotification(`Successfully joined "${task.title}"!`, 'success');
+                } else {
+                    showNotification(data.message || 'Failed to join task', 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                // For demo purposes, still update locally if backend fails
+                availableTasks = availableTasks.filter(t => t.id !== taskId);
+                myTasks.push({ ...task, status: 'assigned', joinedAt: new Date().toISOString() });
+                localStorage.setItem(`volunteer_${currentVolunteerId}_tasks`, JSON.stringify(myTasks));
+                
+                // Update stats
+                updateVolunteerStats();
+                
+                loadAvailableTasks();
+                loadMyTasks();
+                showNotification(`Successfully joined "${task.title}"!`, 'success');
+            });
+        }
+
+        // Create Guild
+        function createGuild() {
+            document.getElementById('createGuildForm').classList.add('show');
+        }
+
+        function closeCreateGuildForm() {
+            document.getElementById('createGuildForm').classList.remove('show');
+            document.getElementById('createGuildFormElement').reset();
+        }
+
+        // Generate random guild ID (5-10 characters)
+        function generateGuildId() {
+            const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+            const length = Math.floor(Math.random() * 6) + 5; // 5-10 characters
+            let result = '';
+            for (let i = 0; i < length; i++) {
+                result += chars.charAt(Math.floor(Math.random() * chars.length));
+            }
+            return result;
+        }
+
+        function submitCreateGuild(event) {
+            event.preventDefault();
+            
+            const guildName = document.getElementById('guildName').value;
+            const guildPhoto = document.getElementById('guildPhoto').value;
+            const initialMembers = parseInt(document.getElementById('initialMembers').value);
+            const guildId = generateGuildId(); // Generate random ID
+
+            fetch('http://localhost:8080/api/guild/create', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    guild_name: guildName,
+                    members: initialMembers,
+                    photo: guildPhoto || null,
+                    leader_id: currentVolunteerId,
+                    guild_id: guildId
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    // Parse response to get guild ID
+                    let createdGuildId = guildId;
+                    try {
+                        const responseData = JSON.parse(data.data);
+                        createdGuildId = responseData.guild_id || guildId;
+                    } catch (e) {
+                        // Use generated ID if parsing fails
+                    }
+                    
+                    showNotification(`Guild "${guildName}" created successfully! Guild ID: ${createdGuildId}`, 'success');
+                    closeCreateGuildForm();
+                    
+                    // Update guild info
+                    const user = userManager.currentUser;
+                    user.guildName = guildName;
+                    user.guildId = createdGuildId;
+                    user.guildMembers = initialMembers;
+                    user.guildPoints = 0;
+                    user.guildLevel = 1;
+                    user.guildCreated = new Date().toISOString();
+                    userManager.saveCurrentUser(user);
+                    userManager.saveUsers();
+                    
+                    // Update stats
+                    updateVolunteerStats();
+                    
+                    // Reload dashboard to show new guild
+                    setTimeout(() => {
+                        loadVolunteerDashboard();
+                    }, 500);
+                } else {
+                    showNotification(data.message || 'Failed to create guild', 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showNotification('Guild created successfully!', 'success');
+                closeCreateGuildForm();
+            });
+        }
+
+        // Join Guild
+        function joinGuild() {
+            document.getElementById('joinGuildForm').classList.add('show');
+        }
+
+        function closeJoinGuildForm() {
+            document.getElementById('joinGuildForm').classList.remove('show');
+            document.getElementById('joinGuildFormElement').reset();
+        }
+
+        function submitJoinGuild(event) {
+            event.preventDefault();
+            
+            const guildIdentifier = document.getElementById('guildIdentifier').value;
+            const isNumeric = /^\d+$/.test(guildIdentifier);
+
+            const requestBody = {
+                volunteer_id: currentVolunteerId
+            };
+
+            if (isNumeric) {
+                requestBody.guild_id = parseInt(guildIdentifier);
+            } else {
+                requestBody.guild_name = guildIdentifier;
+            }
+
+            fetch('http://localhost:8080/api/guild/join', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(requestBody)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    showNotification('Join request sent! Waiting for guild master approval.', 'success');
+                    closeJoinGuildForm();
+                } else {
+                    showNotification(data.message || 'Failed to send join request', 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showNotification('Join request sent! Waiting for approval.', 'success');
+                closeJoinGuildForm();
+            });
+        }
+
+        function viewLeaderboard() {
+            // Open leaderboard from parent window
+            if (window.opener) {
+                window.opener.showLeaderboard();
+            }
+        }
+
+        function viewAchievements() {
+            showNotification('Achievements feature coming soon!', 'info');
+        }
+
+        // Edit Profile functions
+        function editProfile() {
+            const user = userManager.currentUser;
+            if (!user) {
+                showNotification('Please login first!', 'error');
+                return;
+            }
+
+            // Pre-fill profile data
+            document.getElementById('editName').value = user.name || '';
+            document.getElementById('editAge').value = user.age || '';
+            document.getElementById('editPhone').value = user.phone || '';
+            document.getElementById('editEmail').value = user.email || '';
+            document.getElementById('editAddress').value = user.address || '';
+            
+            if (user.profilePhoto) {
+                document.getElementById('profilePhotoPreview').src = user.profilePhoto;
+            } else {
+                document.getElementById('profilePhotoPreview').src = `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&size=150`;
+            }
+
+            document.getElementById('profileModal').classList.add('show');
+        }
+
+        function closeProfileModal() {
+            document.getElementById('profileModal').classList.remove('show');
+            profilePhotoFile = null;
+        }
+
+        function handleProfilePhotoUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            profilePhotoFile = file;
+            const reader = new FileReader();
+            
+            reader.onload = function(e) {
+                document.getElementById('profilePhotoPreview').src = e.target.result;
+            };
+            
+            reader.readAsDataURL(file);
+        }
+
+        function submitProfileForm(event) {
+            event.preventDefault();
+
+            const formData = new FormData();
+            formData.append('name', document.getElementById('editName').value);
+            formData.append('age', document.getElementById('editAge').value);
+            formData.append('phone', document.getElementById('editPhone').value);
+            formData.append('email', document.getElementById('editEmail').value);
+            formData.append('address', document.getElementById('editAddress').value);
+            
+            if (profilePhotoFile) {
+                formData.append('profile_photo', profilePhotoFile);
+            }
+
+            showNotification('Updating profile...', 'info');
+
+            fetch('http://localhost:8080/api/users/profile', {
+                method: 'PUT',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    // Update local user data
+                    const user = userManager.currentUser;
+                    user.name = document.getElementById('editName').value;
+                    user.age = document.getElementById('editAge').value;
+                    user.phone = document.getElementById('editPhone').value;
+                    user.email = document.getElementById('editEmail').value;
+                    user.address = document.getElementById('editAddress').value;
+                    if (data.profile_photo) {
+                        user.profilePhoto = data.profile_photo;
+                    } else if (profilePhotoFile) {
+                        // Use local preview as photo
+                        user.profilePhoto = document.getElementById('profilePhotoPreview').src;
+                    }
+                    userManager.saveCurrentUser(user);
+                    
+                    showNotification('Profile updated successfully!', 'success');
+                    closeProfileModal();
+                    loadVolunteerDashboard();
+                } else {
+                    showNotification(data.message || 'Failed to update profile', 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                // Update locally anyway
+                const user = userManager.currentUser;
+                user.name = document.getElementById('editName').value;
+                user.age = document.getElementById('editAge').value;
+                user.phone = document.getElementById('editPhone').value;
+                user.email = document.getElementById('editEmail').value;
+                user.address = document.getElementById('editAddress').value;
+                if (profilePhotoFile) {
+                    user.profilePhoto = document.getElementById('profilePhotoPreview').src;
+                }
+                userManager.saveCurrentUser(user);
+                
+                showNotification('Profile updated successfully!', 'success');
+                closeProfileModal();
+                loadVolunteerDashboard();
+            });
+        }
+
+        function goBackHome() {
+            window.location.href = 'index.html';
+        }
+
+        // Show notification
+        function showNotification(message, type = 'info') {
+            const notification = document.createElement('div');
+            notification.className = `notification notification-${type}`;
+            notification.innerHTML = `
+                <div class="notification-content">
+                    <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : 'info-circle'}"></i>
+                    <span>${message}</span>
+                </div>
+            `;
+            
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.classList.add('show');
+            }, 100);
+            
+            setTimeout(() => {
+                notification.classList.remove('show');
+                setTimeout(() => {
+                    notification.remove();
+                }, 300);
+            }, 3000);
+        }
+    </script>
+</body>
+</html>
+

@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - Smart Garbage Management System</title>
+    <link rel="stylesheet" href="assets/css/main.css">
+    <link rel="stylesheet" href="assets/css/animations.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="assets/js/auth.js"></script>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(135deg, #8b5cf6, #3b82f6);
+            min-height: 100vh;
+        }
+        
+        .dashboard-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        
+        .dashboard-header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: var(--radius-2xl);
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: var(--shadow-xl);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .admin-welcome {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        
+        .admin-avatar {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, #8b5cf6, #3b82f6);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+        
+        .admin-details h2 {
+            margin: 0;
+            color: var(--gray-800);
+            font-size: 1.5rem;
+        }
+        
+        .admin-details p {
+            margin: 0.25rem 0 0 0;
+            color: var(--gray-600);
+            font-size: 0.875rem;
+        }
+        
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+        
+        .dashboard-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: var(--radius-2xl);
+            padding: 2rem;
+            box-shadow: var(--shadow-xl);
+        }
+        
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+        
+        .card-header h3 {
+            color: var(--gray-800);
+            font-size: 1.25rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+        }
+        
+        .stat-item {
+            background: var(--gray-50);
+            border-radius: var(--radius-lg);
+            padding: 1.5rem;
+            text-align: center;
+            transition: all var(--transition-normal);
+        }
+        
+        .stat-item:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+        }
+        
+        .stat-number {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #8b5cf6;
+            margin-bottom: 0.5rem;
+        }
+        
+        .stat-label {
+            color: var(--gray-600);
+            font-size: 0.875rem;
+        }
+        
+        /* Map Section */
+        .map-section {
+            grid-column: 1 / -1;
+            margin-bottom: 2rem;
+        }
+        
+        .map-controls {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+        }
+        
+        .map-controls input {
+            flex: 1;
+            min-width: 200px;
+            padding: 0.75rem;
+            border: 2px solid var(--gray-300);
+            border-radius: var(--radius-lg);
+            font-size: 0.875rem;
+        }
+        
+        .map-controls button {
+            padding: 0.75rem 1.5rem;
+            background: #8b5cf6;
+            color: white;
+            border: none;
+            border-radius: var(--radius-lg);
+            cursor: pointer;
+            font-weight: 500;
+            transition: all var(--transition-normal);
+        }
+        
+        .map-controls button:hover {
+            background: #7c3aed;
+            transform: translateY(-2px);
+        }
+        
+        #map {
+            height: 500px;
+            width: 100%;
+            border-radius: var(--radius-lg);
+            border: 2px solid var(--gray-200);
+        }
+        
+        .bins-list {
+            max-height: 400px;
+            overflow-y: auto;
+            margin-top: 1rem;
+        }
+        
+        .bin-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem;
+            background: var(--gray-50);
+            border-radius: var(--radius-lg);
+            margin-bottom: 0.75rem;
+            transition: all var(--transition-normal);
+        }
+        
+        .bin-item:hover {
+            transform: translateX(4px);
+            box-shadow: var(--shadow-md);
+        }
+        
+        .bin-info h4 {
+            margin: 0 0 0.25rem 0;
+            color: var(--gray-800);
+            font-size: 0.875rem;
+        }
+        
+        .bin-info p {
+            margin: 0;
+            color: var(--gray-600);
+            font-size: 0.75rem;
+        }
+        
+        .bin-status {
+            padding: 0.25rem 0.75rem;
+            border-radius: var(--radius-sm);
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+        
+        .status-active {
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--success-color);
+        }
+        
+        .status-full {
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--error-color);
+        }
+        
+        .status-maintenance {
+            background: rgba(245, 158, 11, 0.1);
+            color: var(--warning-color);
+        }
+        
+        .back-btn {
+            background: #8b5cf6;
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: var(--radius-lg);
+            cursor: pointer;
+            font-weight: 500;
+            transition: all var(--transition-normal);
+        }
+        
+        .back-btn:hover {
+            background: #7c3aed;
+            transform: translateY(-2px);
+        }
+        
+        .actions-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+        
+        .action-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: var(--radius-xl);
+            padding: 1.5rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all var(--transition-normal);
+            border: 2px solid transparent;
+        }
+        
+        .action-card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-xl);
+            border-color: #8b5cf6;
+        }
+        
+        .action-card i {
+            font-size: 2rem;
+            color: #8b5cf6;
+            margin-bottom: 1rem;
+        }
+        
+        .action-card h4 {
+            margin: 0 0 0.5rem 0;
+            color: var(--gray-800);
+            font-size: 1rem;
+        }
+        
+        .action-card p {
+            margin: 0;
+            color: var(--gray-600);
+            font-size: 0.875rem;
+        }
+        
+        @media (max-width: 768px) {
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .actions-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard-container">
+        <!-- Dashboard Header -->
+        <div class="dashboard-header">
+            <div class="admin-welcome">
+                <div class="admin-avatar" id="adminAvatar">A</div>
+                <div class="admin-details">
+                    <h2 id="adminName">Welcome, Admin!</h2>
+                    <p id="adminType">Administrator Account</p>
+                </div>
+            </div>
+            <button class="back-btn" onclick="goBackHome()">
+                <i class="fas fa-arrow-left"></i>
+                Back
+            </button>
+        </div>
+
+        <!-- Dashboard Grid -->
+        <div class="dashboard-grid">
+            <!-- Statistics Card -->
+            <div class="dashboard-card">
+                <div class="card-header">
+                    <h3><i class="fas fa-chart-line"></i> System Statistics</h3>
+                </div>
+                <div class="stats-grid">
+                    <div class="stat-item">
+                        <div class="stat-number" id="totalUsers">0</div>
+                        <div class="stat-label">Total Users</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number" id="totalBins">0</div>
+                        <div class="stat-label">Total Bins</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number" id="activeBins">0</div>
+                        <div class="stat-label">Active Bins</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number" id="totalReports">0</div>
+                        <div class="stat-label">Total Reports</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bin Management Card -->
+            <div class="dashboard-card">
+                <div class="card-header">
+                    <h3><i class="fas fa-trash-alt"></i> Bin Management</h3>
+                </div>
+                <div class="bins-list" id="binsList">
+                    <p style="text-align: center; color: var(--gray-500); padding: 2rem;">No bins found. Search for a location to see nearby bins.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Live Map Section -->
+        <div class="dashboard-card map-section">
+            <div class="card-header">
+                <h3><i class="fas fa-map-marked-alt"></i> Live Bin Map</h3>
+            </div>
+            <div class="map-controls">
+                <input type="text" id="locationInput" placeholder="Enter location (e.g., New York, NY or coordinates)">
+                <button onclick="searchBins()">
+                    <i class="fas fa-search"></i> Search Bins
+                </button>
+                <button onclick="refreshMap()">
+                    <i class="fas fa-sync-alt"></i> Refresh
+                </button>
+            </div>
+            <div id="map"></div>
+        </div>
+
+        <!-- Actions Grid -->
+        <div class="actions-grid">
+            <div class="action-card" onclick="manageBins()">
+                <i class="fas fa-cog"></i>
+                <h4>Manage Bins</h4>
+                <p>Update bin status and information</p>
+            </div>
+            
+            <div class="action-card" onclick="viewReports()">
+                <i class="fas fa-list"></i>
+                <h4>View Reports</h4>
+                <p>Monitor all garbage reports</p>
+            </div>
+            
+            <div class="action-card" onclick="manageUsers()">
+                <i class="fas fa-users"></i>
+                <h4>Manage Users</h4>
+                <p>Control user accounts</p>
+            </div>
+            
+            <div class="action-card" onclick="systemSettings()">
+                <i class="fas fa-sliders-h"></i>
+                <h4>System Settings</h4>
+                <p>Configure system parameters</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script>
+        let map;
+        let markers = [];
+        let bins = [];
+
+        // Initialize dashboard
+        document.addEventListener('DOMContentLoaded', function() {
+            loadAdminDashboard();
+            initializeMap();
+        });
+
+        // Load admin dashboard data
+        function loadAdminDashboard() {
+            const user = userManager.currentUser;
+            if (!user || user.type !== 'admin') {
+                window.location.href = 'index.html';
+                return;
+            }
+
+            // Update admin info
+            document.getElementById('adminName').textContent = `Welcome, ${user.name}!`;
+            document.getElementById('adminType').textContent = 'Administrator Account';
+            document.getElementById('adminAvatar').textContent = user.name.charAt(0).toUpperCase();
+
+            // Load statistics
+            loadStatistics();
+        }
+
+        // Initialize map
+        function initializeMap() {
+            // Default to a central location (can be changed)
+            map = L.map('map').setView([40.7128, -74.0060], 13); // Default: New York
+
+            // Add OpenStreetMap tiles
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© OpenStreetMap contributors',
+                maxZoom: 19
+            }).addTo(map);
+        }
+
+        // Load statistics
+        function loadStatistics() {
+            // For demo purposes, use sample data
+            // In production, this would fetch from backend
+            document.getElementById('totalUsers').textContent = '1,234';
+            document.getElementById('totalBins').textContent = '156';
+            document.getElementById('activeBins').textContent = '142';
+            document.getElementById('totalReports').textContent = '3,456';
+        }
+
+        // Search for bins near a location
+        function searchBins() {
+            const location = document.getElementById('locationInput').value.trim();
+            
+            if (!location) {
+                showNotification('Please enter a location!', 'error');
+                return;
+            }
+
+            showNotification('Searching for bins...', 'info');
+
+            // For demo, use sample bin data
+            // In production, this would call the backend API
+            const sampleBins = [
+                { id: 1, name: 'Bin #001', lat: 40.7128, lng: -74.0060, status: 'active', fillLevel: 45, type: 'Plastic' },
+                { id: 2, name: 'Bin #002', lat: 40.7150, lng: -74.0080, status: 'full', fillLevel: 95, type: 'Organic' },
+                { id: 3, name: 'Bin #003', lat: 40.7100, lng: -74.0040, status: 'active', fillLevel: 30, type: 'Paper' },
+                { id: 4, name: 'Bin #004', lat: 40.7180, lng: -74.0100, status: 'maintenance', fillLevel: 0, type: 'Metal' },
+                { id: 5, name: 'Bin #005', lat: 40.7080, lng: -74.0020, status: 'active', fillLevel: 60, type: 'Plastic' }
+            ];
+
+            // Simulate API delay
+            setTimeout(() => {
+                bins = sampleBins;
+                displayBinsOnMap(sampleBins);
+                displayBinsList(sampleBins);
+                showNotification(`Found ${sampleBins.length} bins nearby!`, 'success');
+            }, 500);
+        }
+
+        // Display bins on map
+        function displayBinsOnMap(binsData) {
+            // Clear existing markers
+            markers.forEach(marker => map.removeLayer(marker));
+            markers = [];
+
+            if (binsData.length === 0) {
+                showNotification('No bins found for this location.', 'info');
+                return;
+            }
+
+            // Center map on first bin
+            map.setView([binsData[0].lat, binsData[0].lng], 14);
+
+            // Add markers for each bin
+            binsData.forEach(bin => {
+                const statusColors = {
+                    'active': 'green',
+                    'full': 'red',
+                    'maintenance': 'orange'
+                };
+
+                const marker = L.marker([bin.lat, bin.lng])
+                    .addTo(map)
+                    .bindPopup(`
+                        <strong>${bin.name}</strong><br>
+                        Type: ${bin.type}<br>
+                        Status: ${bin.status}<br>
+                        Fill Level: ${bin.fillLevel}%
+                    `);
+
+                markers.push(marker);
+            });
+        }
+
+        // Display bins list
+        function displayBinsList(binsData) {
+            const binsList = document.getElementById('binsList');
+            
+            if (binsData.length === 0) {
+                binsList.innerHTML = '<p style="text-align: center; color: var(--gray-500); padding: 2rem;">No bins found.</p>';
+                return;
+            }
+
+            binsList.innerHTML = binsData.map(bin => `
+                <div class="bin-item">
+                    <div class="bin-info">
+                        <h4>${bin.name} - ${bin.type}</h4>
+                        <p>Location: ${bin.lat.toFixed(4)}, ${bin.lng.toFixed(4)} • Fill: ${bin.fillLevel}%</p>
+                    </div>
+                    <div class="bin-status status-${bin.status}" onclick="updateBinStatus(${bin.id})">
+                        ${bin.status.charAt(0).toUpperCase() + bin.status.slice(1)}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Update bin status
+        function updateBinStatus(binId) {
+            const bin = bins.find(b => b.id === binId);
+            if (!bin) return;
+
+            const newStatus = prompt(`Update status for ${bin.name}:\n1. active\n2. full\n3. maintenance`, bin.status);
+            
+            if (newStatus && ['active', 'full', 'maintenance'].includes(newStatus.toLowerCase())) {
+                bin.status = newStatus.toLowerCase();
+                displayBinsList(bins);
+                displayBinsOnMap(bins);
+                showNotification(`Bin ${bin.name} status updated to ${newStatus}!`, 'success');
+                
+                // In production, this would call the backend API
+                // updateBinStatusAPI(binId, newStatus);
+            }
+        }
+
+        // Refresh map
+        function refreshMap() {
+            const location = document.getElementById('locationInput').value.trim();
+            if (location) {
+                searchBins();
+            } else {
+                initializeMap();
+                showNotification('Map refreshed!', 'success');
+            }
+        }
+
+        // Action functions
+        function manageBins() {
+            showNotification('Bin management panel coming soon!', 'info');
+        }
+
+        function viewReports() {
+            showNotification('Reports view coming soon!', 'info');
+        }
+
+        function manageUsers() {
+            showNotification('User management coming soon!', 'info');
+        }
+
+        function systemSettings() {
+            showNotification('System settings coming soon!', 'info');
+        }
+
+        function goBackHome() {
+            window.location.href = 'index.html';
+        }
+
+        // Show notification
+        function showNotification(message, type = 'info') {
+            const notification = document.createElement('div');
+            notification.className = `notification notification-${type}`;
+            notification.innerHTML = `
+                <div class="notification-content">
+                    <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : 'info-circle'}"></i>
+                    <span>${message}</span>
+                </div>
+            `;
+            
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.classList.add('show');
+            }, 100);
+            
+            setTimeout(() => {
+                notification.classList.remove('show');
+                setTimeout(() => {
+                    notification.remove();
+                }, 300);
+            }, 3000);
+        }
+    </script>
+</body>
+</html>
+
